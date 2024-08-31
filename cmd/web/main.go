@@ -88,7 +88,7 @@ func main() {
 }
 
 func openDB(dsn string) (*sql.DB, error) {
-	db, err := sql.Open("mysql", dsn)
+	db, err := sql.Open("mysql", dsn) // "C:\Program Files\Go\src\crypto\tls\generate_cert.go"
 	if err != nil {
 		return nil, err
 	}
