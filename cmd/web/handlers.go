@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"strconv"
 
+	"database/sql"// adicionei  
+
 	"snippetbox.jmorelli.dev/internal/models"
 	"snippetbox.jmorelli.dev/internal/validator"
 
@@ -38,6 +40,90 @@ type passwordUpdateForm struct {
 	NewPasswordConfirmation string `form:"newPasswordConfirmation"`
 	validator.Validator     `form:"-"`
 }
+// feito por mim
+func (app *application) getAuthenticatedUserID(r *http.Request) (int, error){
+	userIDStr := app.sessionManager.GetString(r.Context(), "id")
+
+	if userIDStr == ""{
+		return 0, errors.New("user não autenticado")
+	} 
+
+	userID, err := strconv.Atoi(userIDStr)
+
+	if err != nil{
+		return 0, err
+	}
+
+	return userID, nil
+}
+
+// função busca snippet por ID
+
+func (app *application) searchSnippet(w http.ResponseWriter, r *http.Request){
+	
+	
+
+	//Verifica se o usuário está autenticado
+
+	if !app.isAuthenticated(r){
+		http.Redirect(w, r, "/user/login", http.StatusSeeOther)
+		return
+	}
+
+	// Obtem o ID do snippet
+
+	idStr:= r.URL.Query().Get("id")
+	id, err := strconv.Atoi(idStr)
+
+	if idStr == "" {
+        app.serverError(w, errors.New("id parameter is missing"))
+        return
+    }
+
+	if err != nil {
+        app.serverError(w, fmt.Errorf("invalid id parameter: %v", err))
+        return
+    }
+
+	if err != nil || id<1{
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+
+
+	// Obtem o ID do User logado
+
+	userId, err := app.getAuthenticatedUserID(r)
+
+	if err != nil {
+		app.serverError(w,err)
+		return
+	}
+
+	// Busca o Snippet no BD
+
+	snippet, err := app.snippets.GetByIDAndUserID(id, userId)
+
+	if err == sql.ErrNoRows {
+		app.notFound(w)
+		return
+	} else if err != nil {
+		app.serverError(w, err)
+		return
+	}
+
+	// renderiza o template com o snippet encontrado 
+
+	data := app.newTemplateData(r)
+	data.Snippet = snippet
+
+	app.render(w, http.StatusOK, "view.tmpl.html", data)
+
+
+}
+
+// feito por mim 
+
 
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
 	snippets, err := app.snippets.Latest()

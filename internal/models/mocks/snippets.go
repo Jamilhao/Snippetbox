@@ -32,3 +32,9 @@ func (m *SnippetModel) Get(id int) (*models.Snippet, error) {
 func (m *SnippetModel) Latest() ([]*models.Snippet, error) {
 	return []*models.Snippet{mockSnippet}, nil
 }
+
+func (m *SnippetModel) GetByIDAndUserID(id int, userID int) (*models.Snippet, error) {
+    // Implementação mockada do método GetByIDAndUserID
+    // Retorne valores mockados ou configuráveis conforme necessário para os testes
+    return &models.Snippet{ID: id, Title: "Mock Title", Content: "Mock Content"}, nil
+} // teste mockado pro cmd\web\testutils_test.go

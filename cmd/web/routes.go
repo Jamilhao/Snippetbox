@@ -94,5 +94,14 @@ func (app *application) routes() http.Handler {
 			app.authenticate(app.requireAuthentication(http.HandlerFunc(app.passwordUpdatePost))),
 		),
 	)
+
+	// Eu que fiz
+
+	router.Handler(
+		http.MethodGet, "/snippet/search", 
+		app.sessionManager.LoadAndSave(
+			app.authenticate(http.HandlerFunc(app.searchSnippet)),
+		),
+	)
 	return app.recoverFromPanic(app.logRequest(app.noSurf(secureHeaders(router))))
 }

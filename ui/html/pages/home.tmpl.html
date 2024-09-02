@@ -17,6 +17,11 @@
         </tr>
         {{end}}
     </table>
+    <form action="/snippet/search" method="GET">
+        <label for="id">Buscar snippet por ID:</label>
+        <input type="number" id="id" name="id" min="1" required>
+        <button type="submit">Buscar</button>
+    </form>
     {{else}}
         <p>There's nothing to see here... yet!</p>
     {{end}}

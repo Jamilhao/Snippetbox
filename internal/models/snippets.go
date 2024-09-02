@@ -10,6 +10,7 @@ type SnippetModelInterface interface {
 	Insert(title string, content string, expires int) (int, error)
 	Get(id int) (*Snippet, error)
 	Latest() ([]*Snippet, error)
+	GetByIDAndUserID(id int, userID int) (*Snippet, error) // adioni para usar no handlers.go
 }
 
 type Snippet struct {
@@ -91,4 +92,26 @@ func (m *SnippetModel) Latest() ([]*Snippet, error) {
 	}
 
 	return snippets, nil
+}
+
+
+
+// GetByIDAndUserID busca um snippet específico pelo ID e pelo ID do usuário.
+
+func (m *SnippetModel) GetByIDAndUserID(id int, userID int) (*Snippet, error) {
+	stmt := `SELECT id, title, content, created, expires FROM snippets 
+			 WHERE id = ? AND id = ? AND expires > UTC_TIMESTAMP()`
+
+	s := &Snippet{}
+
+	err := m.DB.QueryRow(stmt, id, userID).Scan(&s.ID, &s.Title, &s.Content, &s.Created, &s.Expires)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrNoRecord
+		} else {
+			return nil, err
+		}
+	}
+
+	return s, nil
 }
