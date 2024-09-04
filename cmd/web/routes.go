@@ -98,10 +98,11 @@ func (app *application) routes() http.Handler {
 	// Eu que fiz
 
 	router.Handler(
-		http.MethodGet, "/snippet/search", 
+		http.MethodGet, "/snippet/search",
 		app.sessionManager.LoadAndSave(
 			app.authenticate(http.HandlerFunc(app.searchSnippet)),
-		),
-	)
+		))
 	return app.recoverFromPanic(app.logRequest(app.noSurf(secureHeaders(router))))
 }
+
+//(app.requireAuthentication

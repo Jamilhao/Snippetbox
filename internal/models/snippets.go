@@ -11,6 +11,7 @@ type SnippetModelInterface interface {
 	Get(id int) (*Snippet, error)
 	Latest() ([]*Snippet, error)
 	GetByIDAndUserID(id int, userID int) (*Snippet, error) // adioni para usar no handlers.go
+	Search(query string) ([]*Snippet, error)
 }
 
 type Snippet struct {
@@ -94,8 +95,6 @@ func (m *SnippetModel) Latest() ([]*Snippet, error) {
 	return snippets, nil
 }
 
-
-
 // GetByIDAndUserID busca um snippet específico pelo ID e pelo ID do usuário.
 
 func (m *SnippetModel) GetByIDAndUserID(id int, userID int) (*Snippet, error) {
@@ -114,4 +113,36 @@ func (m *SnippetModel) GetByIDAndUserID(id int, userID int) (*Snippet, error) {
 	}
 
 	return s, nil
+}
+
+func (m *SnippetModel) Search(query string) ([]*Snippet, error) {
+	stmt := `SELECT id, title, content, created, expires FROM snippets
+	WHERE (title LIKE ? OR content LIKE ? OR id = ?) AND expires > UTC_TIMESTAMP() ORDER BY id DESC`
+
+	// Adiciona wildcards para busca parcial.
+	searchQuery := "%" + query + "%"
+
+	rows, err := m.DB.Query(stmt, searchQuery, searchQuery, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	snippets := []*Snippet{}
+
+	for rows.Next() {
+		s := &Snippet{}
+		err = rows.Scan(&s.ID, &s.Title, &s.Content, &s.Created, &s.Expires)
+		if err != nil {
+			return nil, err
+		}
+
+		snippets = append(snippets, s)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return snippets, nil
 }
